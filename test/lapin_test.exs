@@ -47,6 +47,21 @@ defmodule LapinTest do
             queue: queue
           ]
         ]
+      ],
+      bad_producer: [
+        module: LapinTest.HelloWorld,
+        host: "nohosthere",
+        port: 9999,
+        username: "thisisnotthedefault",
+        password: "nopass",
+        virtual_host: "/",
+        channels: [
+          [
+            role: :producer,
+            exchange: exchange,
+            queue: queue
+          ]
+        ]
       ]
     }
   end
@@ -67,5 +82,11 @@ defmodule LapinTest do
     {:ok, passive} = Lapin.Connection.start_link(ctx.passive)
     {:error, _} = Lapin.Connection.publish(passive, ctx.exchange, "", ctx.message)
     :ok = Lapin.Connection.close(passive)
+  end
+
+  test "that the startup should stop trying to connect to a non-existent host", ctx do
+    assert_raise BadConnectionException, fn ->
+      {:ok, bad_host} = Lapin.Connection.start_link(ctx.bad_producer)
+    end
   end
 end
